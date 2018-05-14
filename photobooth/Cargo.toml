@@ -1,0 +1,6 @@
+[package]
+name = "photobooth"
+version = "0.1.0"
+authors = ["Sascha <sascha.zenglein@stud.tu-darmstadt.de>"]
+
+[dependencies]
