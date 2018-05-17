@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2018  Sascha Zenglein sascha.zenglein@stud.tu-darmstadt.e
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 extern crate ggez;
 extern crate ggez_goodies;
 
@@ -116,7 +133,15 @@ impl Scene<SharedState, Event> for PreviewScene {
     }
 
     fn input(&mut self, gameworld: &mut SharedState, event: Event, started: bool) {
-
+        match event {
+            MouseButtonUp {
+                mouse_btn, x, y, ..
+            } => {
+//                let camera_file =
+                camera_layer::capture_and_save(self.camera, self.context, "testfile.jpeg");
+            },
+            _ => {},
+        }
     }
 
     fn name(&self) -> &str {
