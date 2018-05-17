@@ -1,7 +1,6 @@
 [workspace]
 members = [
     "photobooth",
-    "camera_layer",
 ]
 
 exclude = [

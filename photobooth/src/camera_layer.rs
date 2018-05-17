@@ -1,8 +1,6 @@
-extern crate image;
 extern crate mozjpeg_sys;
 extern crate gphoto2_sys as gphoto;
 extern crate libc;
-
 
 use std;
 use std::mem;
@@ -14,7 +12,32 @@ use gphoto::{Camera, GPContext, CameraFile};
 
 use self::mozjpeg_sys::{jpeg_error_mgr, jpeg_decompress_struct, jpeg_std_error};
 
+/// simple wrapper around image data that also contains image dimensions
+pub struct RgbaImage {
+    pub data: Vec<u8>,
+    pub width: u32,
+    pub height: u32,
+}
 
+impl RgbaImage {
+    pub fn new(data: Vec<u8>, width: u32, height: u32) -> RgbaImage{
+        RgbaImage{
+            data,
+            width,
+            height
+        }
+    }
+
+    pub fn width(&self) -> u32 {
+        self.width
+    }
+    pub fn height(&self) -> u32{
+        self.height
+    }
+    pub fn into_buffer(self) -> Vec<u8> {
+        self.data
+    }
+}
 
 /// Create the gphoto2 camera and context objects that will be necessary for most actions
 /// Simple wrapper around gphoto calls specialized for the photobooth functionality
@@ -40,7 +63,7 @@ pub fn new_camera_file() -> *mut CameraFile {
 
 /// Fetches a single preview image using the given CameraFile
 /// Returns an image with format Rgba for easy use
-pub fn get_preview_image(camera: *mut Camera, context: *mut GPContext, camera_file: *mut CameraFile) -> image::RgbaImage {
+pub fn get_preview_image(camera: *mut Camera, context: *mut GPContext, camera_file: *mut CameraFile) -> RgbaImage {
     unsafe {
         gphoto::gp_camera_capture_preview(camera, camera_file, context)
     };
@@ -67,7 +90,7 @@ pub fn camera_file_to_slice<'a>(camera_file: *mut CameraFile) -> &'a[u8]{
 }
 
 /// Basically the example code from the mozjpeg-sys page on github
-pub fn decode_jpeg_slice(data: &[u8]) -> image::RgbaImage {
+pub fn decode_jpeg_slice(data: &[u8]) -> RgbaImage {
 
     unsafe {
         let mut err: jpeg_error_mgr = mem::zeroed();
@@ -101,8 +124,6 @@ pub fn decode_jpeg_slice(data: &[u8]) -> image::RgbaImage {
         mozjpeg_sys::jpeg_finish_decompress(&mut cinfo);
         mozjpeg_sys::jpeg_destroy_decompress(&mut cinfo);
 
-        let image_buffer = image::ImageBuffer::from_raw(width, height, buffer).unwrap();
-
-        image_buffer
+        RgbaImage::new(buffer, width, height)
     }
 }
