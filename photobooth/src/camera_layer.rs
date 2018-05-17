@@ -5,9 +5,9 @@ extern crate libc;
 use std;
 use std::mem;
 use std::slice;
+use std::io::Write;
 
-
-use gphoto::{Camera, GPContext, CameraFile};
+use gphoto::{Camera, GPContext, CameraFile, CameraCaptureType, CameraFilePath};
 
 
 use self::mozjpeg_sys::{jpeg_error_mgr, jpeg_decompress_struct, jpeg_std_error};
@@ -71,6 +71,31 @@ pub fn get_preview_image(camera: *mut Camera, context: *mut GPContext, camera_fi
     let data = camera_file_to_slice(camera_file);
 
     decode_jpeg_slice(data)
+}
+
+/// Captures an image, downloads and saves it, then deletes the file on the camera.
+pub fn capture_and_save(camera: *mut Camera, context: *mut GPContext, file_name: &str){
+    let mut camera_file: *mut CameraFile = unsafe { mem::uninitialized() };
+
+    use std::os::unix::io::IntoRawFd;
+    let fd = std::fs::File::create(file_name).unwrap().into_raw_fd();
+
+    unsafe {
+        gphoto::gp_file_new_from_fd(&mut camera_file, fd);
+    }
+
+    let mut camera_file_path: *mut CameraFilePath = unsafe { mem::uninitialized() };
+    let mut capture_type = CameraCaptureType::GP_CAPTURE_IMAGE;
+    let mut file_type = gphoto::CameraFileType::GP_FILE_TYPE_NORMAL;
+
+
+    unsafe {
+        let folder = (*camera_file_path).folder.as_mut_ptr();
+        let file = (*camera_file_path).name.as_mut_ptr();
+        gphoto::gp_camera_capture(camera, capture_type, camera_file_path, context);
+        gphoto::gp_camera_file_get(camera, folder, file, file_type, camera_file, context);
+        gphoto::gp_camera_file_delete(camera, folder, file, context);
+    }
 }
 
 
