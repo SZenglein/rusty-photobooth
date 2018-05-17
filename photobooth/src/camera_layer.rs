@@ -4,11 +4,15 @@ extern crate gphoto2_sys as gphoto;
 extern crate libc;
 
 
+use std;
 use std::mem;
 use std::slice;
 
 
 use gphoto::{Camera, GPContext, CameraFile};
+
+
+use self::mozjpeg_sys::{jpeg_error_mgr, jpeg_decompress_struct, jpeg_std_error};
 
 
 
@@ -64,7 +68,6 @@ pub fn camera_file_to_slice<'a>(camera_file: *mut CameraFile) -> &'a[u8]{
 
 /// Basically the example code from the mozjpeg-sys page on github
 pub fn decode_jpeg_slice(data: &[u8]) -> image::RgbaImage {
-    use mozjpeg_sys::{jpeg_error_mgr, jpeg_decompress_struct, jpeg_std_error};
 
     unsafe {
         let mut err: jpeg_error_mgr = mem::zeroed();
@@ -101,13 +104,5 @@ pub fn decode_jpeg_slice(data: &[u8]) -> image::RgbaImage {
         let image_buffer = image::ImageBuffer::from_raw(width, height, buffer).unwrap();
 
         image_buffer
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
     }
 }
